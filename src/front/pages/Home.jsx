@@ -1,11 +1,19 @@
-import React, { useEffect } from "react"
-import rigoImageUrl from "../assets/img/rigo-baby.jpg";
+import React, { useEffect, useState } from "react"
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
+import { Link, useNavigate } from "react-router-dom";
 
 export const Home = () => {
 
 	const { store, dispatch } = useGlobalReducer()
 
+	const Navigate = useNavigate()
+	const [usertoAccess, setUserToAccess] = useState({
+		email: "",
+        password: ""
+	})
+
+
+	
 	const loadMessage = async () => {
 		try {
 			const backendUrl = import.meta.env.VITE_BACKEND_URL
@@ -30,23 +38,63 @@ export const Home = () => {
 
 	useEffect(() => {
 		loadMessage()
+		//login()
 	}, [])
 
+
+	const login = function(e){
+		e.preventDefault()
+		console.log("estoy logeandome")
+		fetch(import.meta.env.VITE_BACKEND_URL + "login", {
+			method: "POST",
+			headers : {"Content-Type": "application/json"},
+			body: JSON.stringify(usertoAccess)
+		})
+		.then((response)=>{
+			if(!response.ok) {
+			alert('error correo o contraseña equivocados')}
+			return response.json()
+			
+		})
+		.then((data)=>{
+			console.log(data)
+			localStorage.setItem("token-jwt", data.token)
+			Navigate('/private_page')
+		})
+		.catch((error)=>{error})
+	}
+
 	return (
-		<div className="text-center mt-5">
-			<h1 className="display-4">Hello Rigo!!</h1>
-			<p className="lead">
-				<img src={rigoImageUrl} className="img-fluid rounded-circle mb-3" alt="Rigo Baby" />
-			</p>
-			<div className="alert alert-info">
-				{store.message ? (
-					<span>{store.message}</span>
-				) : (
-					<span className="text-danger">
-						Loading message from the backend (make sure your python 🐍 backend is running)...
-					</span>
-				)}
+		<div className="text-center mt-5 mb-5">
+			<h3 className="">PROYECTO DE AUTENTICACION JWT</h3>
+			<p className="">By: Andrea Nolasco</p>
+
+
+			<div className="container text-start mt-5 col-4">
+				<form onSubmit={login} className="">
+					<div className="mb-3">
+						<label for="exampleInputEmail1" className="form-label">Username:</label>
+						<input type="email" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" 
+							onChange={(e)=>{setUserToAccess({...usertoAccess, email: e.target.value})}} />
+						<div id="emailHelp" className="form-text">Ingrese el correo electrónico registrado.</div>
+					</div>
+					<div className="mb-3">
+						<label for="exampleInputPassword1" className="form-label">Password:</label>
+						<input type="password" className="form-control" id="exampleInputPassword1" 
+							onChange={(e)=>{setUserToAccess({...usertoAccess, password: e.target.value})}}
+						/>
+					</div>
+					<button type="submit" className="btn btn-primary">Log in</button>
+
+					<Link to="/register">
+						<button className="btn btn-primary ms-5">Registrarme</button>
+					</Link>
+				</form>
+				
+
 			</div>
+
 		</div>
+
 	);
 }; 
